@@ -8,6 +8,7 @@ from typing import List
 @dataclass
 class Envelope:
     id: int = 0
+    name: str = ""
 
     category: str = ""
     """Either 'Cost', 'Emergency', 'Save', 'Spend', or 'Internal'."""
@@ -16,7 +17,7 @@ class Envelope:
 
     amount: float = 0.0
     """Amount of money in this envelope."""
-    goal: float = 0.0
+    goal: float = None
     """The target, ideal amount, or required cost, depending on category."""
     capped: bool = False
     """Whether the goal is the maximum of this envelope or if it's okay to add more."""
@@ -43,6 +44,8 @@ class AccountingSystemData:
 
         self.expected_income: float = 0.0
         """How much per month I expect I will make"""
+
+        self.target_max_spend: float = 0.0
 
         self.path_system_data = os.path.join(data_dir, "system.json")
         self.path_envelopes = os.path.join(data_dir, "envelopes.json")
@@ -82,12 +85,14 @@ class AccountingSystemData:
                 system_data = json.load(infile)
             self.sync_repo = system_data["sync_repo"]
             self.expected_income = system_data["expected_income"]
+            self.target_max_spend = system_data["target_max_spend"]
 
     def save_system_data(self):
         with open(self.path_system_data, 'w') as outfile:
             json.dump(dict(
                 sync_repo=self.sync_repo,
-                expected_income=self.expected_income
+                expected_income=self.expected_income,
+                target_max_spend=self.target_max_spend
             ), outfile)
 
     def load_envelopes(self):
