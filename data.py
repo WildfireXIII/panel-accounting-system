@@ -27,6 +27,8 @@ class Envelope:
     """When the envelope was created."""
     removed: str = None
     """When the envelope was retired, None for if it's still active."""
+    active: bool = True
+    """Whether this envelope has been "deleted" or not."""
 
 
 # @dataclass
@@ -46,7 +48,7 @@ class AccountingSystemData:
         """How much per month I expect I will make"""
 
         self.target_max_spend: float = 0.0
-
+        
         self.path_system_data = os.path.join(data_dir, "system.json")
         self.path_envelopes = os.path.join(data_dir, "envelopes.json")
         self.path_accounts = os.path.join(data_dir, "accounts.csv")
@@ -59,9 +61,15 @@ class AccountingSystemData:
 
         self.envelopes: List[Envelope] = []
         self.accounts: pd.DataFrame = pd.DataFrame(columns=["name", "amount", "track"])
-        self.envelope_history: pd.DataFrame = None
-        self.account_history: pd.DataFrame = None
-        self.transfer: pd.DataFrame = None
+        self.envelope_history: pd.DataFrame = pd.DataFrame()
+        self.account_history: pd.DataFrame = pd.DataFrame()
+        self.transfers: pd.DataFrame = pd.DataFrame(columns=["envelope_from", "envelope_to", "amount", "type", "description", "date_entered", "date_processed", "accounted", "tags"])
+        
+    def get_envelope_by_name(self, name):
+        for envelope in self.envelopes:
+            if envelope.name == name:
+                return envelope
+        return None
 
     def load(self):
         self.load_system_data()
