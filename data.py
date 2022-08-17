@@ -7,7 +7,7 @@ from typing import List
 
 @dataclass
 class Envelope:
-    id: int = 0
+    id: int = None
     name: str = ""
 
     category: str = ""
@@ -48,7 +48,7 @@ class AccountingSystemData:
         """How much per month I expect I will make"""
 
         self.target_max_spend: float = 0.0
-        
+
         self.path_system_data = os.path.join(data_dir, "system.json")
         self.path_envelopes = os.path.join(data_dir, "envelopes.json")
         self.path_accounts = os.path.join(data_dir, "accounts.csv")
@@ -63,13 +63,39 @@ class AccountingSystemData:
         self.accounts: pd.DataFrame = pd.DataFrame(columns=["name", "amount", "track"])
         self.envelope_history: pd.DataFrame = pd.DataFrame()
         self.account_history: pd.DataFrame = pd.DataFrame()
-        self.transfers: pd.DataFrame = pd.DataFrame(columns=["envelope_from", "envelope_to", "amount", "type", "description", "date_entered", "date_processed", "accounted", "tags"])
-        
+        self.transfers: pd.DataFrame = pd.DataFrame(
+            columns=["envelope_from", "envelope_to", "amount", "type", "description", "date_entered", "date_processed", "accounted", "tags"])
+
     def get_envelope_by_name(self, name):
         for envelope in self.envelopes:
             if envelope.name == name:
                 return envelope
         return None
+    
+    def max_envelope_id(self):
+        max_id = -1
+        for envelope in self.envelopes:
+            if envelope.id > max_id:
+                max_id = envelope.id
+
+        return max_id
+
+    def update_envelope_amounts(self):
+        for envelope in self.envelopes:
+            baseline = self.envelope_history.iloc[-1][envelope.name]
+            baseline_date = self.envelope_history.iloc[-1].date
+            
+            froms = self.transfers[(self.transfers.envelope_from == envelope.id)
+                    & ((self.transfers.date_entered > baseline_date) |
+                        (self.transfers.date_processed > baseline_date))]
+            tos = self.transfers[(self.transfers.envelope_to == envelope.id)
+                    & ((self.transfers.date_entered > baseline_date) |
+                        (self.transfers.date_processed > baseline_date))]
+        
+
+            computed_amount = baseline - froms.amount.sum() + tos.amount.sum()
+            print(envelope.name, computed_amount)
+            envelope.amount = computed_amount
 
     def load(self):
         self.load_system_data()
