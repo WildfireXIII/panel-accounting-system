@@ -94,7 +94,6 @@ class AccountingSystemData:
         
 
             computed_amount = baseline - froms.amount.sum() + tos.amount.sum()
-            print(envelope.name, computed_amount)
             envelope.amount = computed_amount
 
     def load(self):

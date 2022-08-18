@@ -28,19 +28,20 @@ class AccountingSystem:
         self.data.envelopes.append(env)
         return env
 
-    def grab_accounts(self):
-        """Do we assume that expenses are already accounted for? I say yes. Should be reminder in frontend for this."""
+    def grab_accounts(self) -> float:
+        """Do we assume that expenses are already accounted for? I say yes. Should be reminder in frontend for this.
+
+        returns the diff added
+        """
         accounts_total = self.data.accounts[self.data.accounts.track].amount.sum()
         envs = pd.DataFrame(self.data.envelopes)
         envelopes_total = envs[envs.category != "Internal/Expense Queue"].amount.sum()
         diff = accounts_total - envelopes_total
 
-        print("accounts total", accounts_total)
-        print("envelopes total", envelopes_total)
-        print("diff", diff)
-
-        self.create_transfer(diff, "Income", None, self.data.get_envelope_by_name("Unaccounted").id, tags=["accounts_grab"])
-        self.data.update_envelope_amounts() # TODO: should this always be done in create_transfer?
+        if diff != 0.0:
+            self.create_transfer(diff, "Income", None, self.data.get_envelope_by_name("Unaccounted").id, tags=["accounts_grab"])
+            self.data.update_envelope_amounts() # TODO: should this always be done in create_transfer?
+        return diff
 
         
 
