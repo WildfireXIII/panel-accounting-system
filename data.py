@@ -73,6 +73,12 @@ class AccountingSystemData:
             if envelope.name == name:
                 return envelope
         return None
+
+    def get_envelope_by_id(self, id):
+        for envelope in self.envelopes:
+            if envelope.id == int(id):
+                return envelope
+        return None
     
     def max_envelope_id(self):
         max_id = -1
@@ -97,6 +103,23 @@ class AccountingSystemData:
 
             computed_amount = baseline - froms.amount.sum() + tos.amount.sum()
             envelope.amount = computed_amount
+
+    def relevant_transfers(self, envelope):
+        rel_df = self.transfers[(self.transfers.envelope_from == envelope.id) |
+                (self.transfers.envelope_to == envelope.id)]
+
+        rel_df["from"] = rel_df.envelope_from.apply(lambda x:
+                self.get_envelope_by_id(x).name if x is not None else None)
+        rel_df["to"] = rel_df.envelope_to.apply(lambda x:
+                self.get_envelope_by_id(x).name if x is not None else None)
+        rel_df["date"] = rel_df.date_entered.apply(lambda x: x.date().strftime("%Y-%m-%d"))
+
+        rel_df = rel_df.sort_values("date_entered", ascending=False)
+
+        rel_df = rel_df[["from", "amount", "to", "type", "tags", "description",
+            "date"]]
+        
+        return rel_df
 
 
     def load(self):
