@@ -49,6 +49,8 @@ class AccountingSystemData:
 
         self.target_max_spend: float = 0.0
 
+        self.transfer_tags: List[str] = None
+
         self.path_system_data = os.path.join(data_dir, "system.json")
         self.path_envelopes = os.path.join(data_dir, "envelopes.json")
         self.path_accounts = os.path.join(data_dir, "accounts.csv")
@@ -96,6 +98,7 @@ class AccountingSystemData:
             computed_amount = baseline - froms.amount.sum() + tos.amount.sum()
             envelope.amount = computed_amount
 
+
     def load(self):
         self.load_system_data()
         self.load_account_history()
@@ -119,13 +122,15 @@ class AccountingSystemData:
             self.sync_repo = system_data["sync_repo"]
             self.expected_income = system_data["expected_income"]
             self.target_max_spend = system_data["target_max_spend"]
+            self.transfer_tags = system_data["transfer_tags"]
 
     def save_system_data(self):
         with open(self.path_system_data, 'w') as outfile:
             json.dump(dict(
                 sync_repo=self.sync_repo,
                 expected_income=self.expected_income,
-                target_max_spend=self.target_max_spend
+                target_max_spend=self.target_max_spend,
+                transfer_tags=self.transfer_tags
             ), outfile)
 
     def load_envelopes(self):

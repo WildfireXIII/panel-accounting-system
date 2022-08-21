@@ -76,6 +76,12 @@ class AccountingSystem:
 
     def create_transfer(self, amount: float = 0.0, type: str = "Transfer", envelope_from: int = None, envelope_to: int = None, description="", tags=None) -> int:
         """Returns id."""
+        if tags is not None:
+            for tag in tags:
+                if self.data.transfer_tags is None:
+                    self.data.transfer_tags = []
+                if tag not in self.data.transfer_tags:
+                    self.data.transfer_tags.append(tag)
         row = dict(amount=amount, type=type, envelope_from=envelope_from,
                    envelope_to=envelope_to, tags=tags, date_entered=datetime.now(), description=description)
         self.data.transfers = df_append(self.data.transfers, row)
