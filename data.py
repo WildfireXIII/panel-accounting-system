@@ -2,7 +2,7 @@ from dataclasses import dataclass, asdict
 import json
 import pandas as pd
 import os
-from typing import List
+from typing import List, Dict
 
 
 @dataclass
@@ -50,6 +50,8 @@ class AccountingSystemData:
         self.target_max_spend: float = 0.0
 
         self.transfer_tags: List[str] = None
+
+        self.distribution_plans: Dict[Dict] = {}
 
         self.path_system_data = os.path.join(data_dir, "system.json")
         self.path_envelopes = os.path.join(data_dir, "envelopes.json")
@@ -146,6 +148,7 @@ class AccountingSystemData:
             self.expected_income = system_data["expected_income"]
             self.target_max_spend = system_data["target_max_spend"]
             self.transfer_tags = system_data["transfer_tags"]
+            self.distribution_plans = system_data["distribution_plans"]
 
     def save_system_data(self):
         with open(self.path_system_data, 'w') as outfile:
@@ -153,7 +156,8 @@ class AccountingSystemData:
                 sync_repo=self.sync_repo,
                 expected_income=self.expected_income,
                 target_max_spend=self.target_max_spend,
-                transfer_tags=self.transfer_tags
+                transfer_tags=self.transfer_tags,
+                distribution_plans=self.distribution_plans
             ), outfile)
 
     def load_envelopes(self):
