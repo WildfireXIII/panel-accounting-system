@@ -7,7 +7,7 @@ from utils import df_append
 
 
 class AccountingSystem:
-    def __init__(self, data_dir="./data"):
+    def __init__(self, data_dir: str = "./data"):
         self.data: AccountingSystemData = AccountingSystemData(data_dir)
 
     def load(self):
@@ -28,6 +28,44 @@ class AccountingSystem:
         self.data.envelopes.append(env)
         return env
 
+    def get_distribution_plan(self, name: str) -> pd.DataFrame:
+        dist_data = self.data.distribution_plans[name]
+
+        # TODO: check rows to ensure there's one for every envelope 
+
+        df = pd.DataFrame(dist_data)
+        df["name"] = df.apply(lambda x:
+                self.data.get_envelope_by_id(x.env_id).name, axis=1)
+        df["goal"] = df.apply(lambda x:
+                self.data.get_envelope_by_id(x.env_id).goal, axis=1)
+        df.amount = df.amount.astype("float")
+        df.percent = df.percent.astype("float")
+        df["expected_increase"] = None
+
+        df = df.reindex(columns=["env_id", "type", "name", "goal", "amount",
+            "percent", "expected_increase"])
+
+        return df
+
+    def create_distribution_plan(self, name: str) -> pd.DataFrame:
+        rows = []
+        for envelope in self.data.envelopes:
+            row = dict(
+                env_id=envelope.id,
+                type=envelope.category,
+                amount=None,
+                percent=None,
+            )
+            rows.append(row)
+
+        self.data.distribution_plans[name] = rows
+        return self.get_distribution_plan(name)
+
+    def update_distribution_plan(self, name: str, df: pd.DataFrame):
+        actual_df = df[["env_id", "type", "amount", "percent"]]
+        json_str = actual_df.to_dict(orient="records")
+        self.data.distribution_plans[name] = json_str
+
     def grab_accounts(self) -> float:
         """Do we assume that expenses are already accounted for? I say yes. Should be reminder in frontend for this.
 
@@ -39,11 +77,10 @@ class AccountingSystem:
         diff = accounts_total - envelopes_total
 
         if diff != 0.0:
-            self.create_transfer(diff, "Income", None, self.data.get_envelope_by_name("Unaccounted").id, tags=["accounts_grab"])
-            self.data.update_envelope_amounts() # TODO: should this always be done in create_transfer?
+            self.create_transfer(diff, "Income", None, self.data.get_envelope_by_name(
+                "Unaccounted").id, tags=["accounts_grab"])
+            self.data.update_envelope_amounts()  # TODO: should this always be done in create_transfer?
         return diff
-
-        
 
     def take_envelopes_snapshot(self):
         """Record a row of the current envelope amounts in the envelope_history."""
