@@ -31,7 +31,20 @@ class AccountingSystem:
     def get_distribution_plan(self, name: str) -> pd.DataFrame:
         dist_data = self.data.distribution_plans[name]
 
-        # TODO: check rows to ensure there's one for every envelope 
+        for envelope in self.data.envelopes:
+            found = False
+            for row in dist_data:
+                if row["env_id"] == envelope.id:
+                    found = True
+                    break
+            if not found and not envelope.category.startswith("Internal"):
+                new_row = dict(
+                    env_id=envelope.id,
+                    type=envelope.category,
+                    amount=None,
+                    percent=None,
+                )
+                dist_data.append(new_row)
 
         df = pd.DataFrame(dist_data)
         df["name"] = df.apply(lambda x:
@@ -50,6 +63,8 @@ class AccountingSystem:
     def create_distribution_plan(self, name: str) -> pd.DataFrame:
         rows = []
         for envelope in self.data.envelopes:
+            if envelope.category.startswith("Internal"):
+                continue
             row = dict(
                 env_id=envelope.id,
                 type=envelope.category,

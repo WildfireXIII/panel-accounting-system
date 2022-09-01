@@ -92,7 +92,10 @@ class AccountingSystemData:
 
     def update_envelope_amounts(self):
         for envelope in self.envelopes:
-            baseline = self.envelope_history.iloc[-1][envelope.name]
+            if envelope.name in self.envelope_history.columns:
+                baseline = self.envelope_history.iloc[-1][envelope.name]
+            else:
+                baseline = 0.0
             baseline_date = self.envelope_history.iloc[-1].date
             
             froms = self.transfers[(self.transfers.envelope_from == envelope.id)
