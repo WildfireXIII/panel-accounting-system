@@ -54,9 +54,10 @@ class AccountingSystem:
         df.amount = df.amount.astype("float")
         df.percent = df.percent.astype("float")
         df["expected_increase"] = None
+        df["expected_percent"] = None
 
         df = df.reindex(columns=["env_id", "type", "name", "goal", "amount",
-            "percent", "expected_increase"])
+            "percent", "expected_increase", "expected_percent"])
 
         return df
 
